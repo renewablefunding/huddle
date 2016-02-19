@@ -1,5 +1,6 @@
 require "huddle/version"
 require "huddle/configuration"
+require "huddle/access_token"
 
 module Huddle
   class << self
