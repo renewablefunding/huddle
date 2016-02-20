@@ -4,6 +4,7 @@ require "json"
 module Huddle
   class AccessToken
     ENDPOINT = URI("https://login.huddle.net/token")
+
     class << self
       def generate
         response = Net::HTTP.post_form(
@@ -32,12 +33,17 @@ module Huddle
       end
     end
 
-    attr_reader :access_token, :refresh_token, :expires_at
+    attr_reader :refresh_token, :expires_at
 
     def initialize(access_token:, expires_in:, refresh_token:)
       @access_token = access_token
       @expires_at = Time.now + expires_in
       @refresh_token = refresh_token
+    end
+
+    def access_token
+      refresh! if expired?
+      @access_token
     end
 
     def refresh!
@@ -56,6 +62,10 @@ module Huddle
 
     def expires_in
       expires_at - Time.now
+    end
+
+    def expired?
+      expires_in <= 0
     end
   end
 end

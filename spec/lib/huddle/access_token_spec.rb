@@ -48,11 +48,42 @@ describe Huddle::AccessToken do
     end
   end
 
+  describe "#access_token" do
+    it "returns initialized access token if not expired yet" do
+      allow(subject).to receive(:expired?).and_return(false)
+      expect(subject).to receive(:refresh!).never
+      expect(subject.access_token).to eq("5b")
+    end
+
+    it "refreshes before returning access token if expired" do
+      allow(subject).to receive(:expired?).and_return(true)
+      expect(subject).to receive(:refresh!)
+      expect(subject.access_token).to eq("5b")
+    end
+  end
+
   describe "#expires_at" do
     it "is calculated based on expires_in" do
       frozen_time = Time.now
       allow(Time).to receive(:now).and_return(frozen_time)
       expect(subject.expires_at).to eq(frozen_time + 109)
+    end
+  end
+
+  describe "#expired?" do
+    it "returns false if expires_in greater than zero" do
+      allow(subject).to receive(:expires_in).and_return(5)
+      expect(subject.expired?).to be false
+    end
+
+    it "returns true if expires_in less than zero" do
+      allow(subject).to receive(:expires_in).and_return(-1)
+      expect(subject.expired?).to be true
+    end
+
+    it "returns true if expires_in is zero" do
+      allow(subject).to receive(:expires_in).and_return(0)
+      expect(subject.expired?).to be true
     end
   end
 
