@@ -13,6 +13,20 @@ module Huddle
       @parsed_xml = parsed_xml
     end
 
+    def id
+      self_link = links["self"]
+      return unless self_link
+      self_link.split("/").last.to_i
+    end
+
+    def links
+      @links ||= begin
+        parsed_xml.xpath("link").each_with_object({}) do |link, memo|
+          memo[link.get("rel")] = link.get("href").gsub("https://api.huddle.net", "")
+        end
+      end
+    end
+
     module ClassMethods
       def root_element
         self.name.split("::").last.downcase

@@ -9,6 +9,8 @@ require 'huddle'
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each {|f| require f}
 
 RSpec.configure do |config|
+  config.include PathHelpers
+
   config.run_all_when_everything_filtered = true
 
   # Run specs in random order to surface order dependencies. If you find an

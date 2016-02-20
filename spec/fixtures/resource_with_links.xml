@@ -1,0 +1,5 @@
+<resource xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <link rel="foo" href="http://example.com/foo/1" />
+  <link rel="bar" href="http://example.com/bar/2" />
+  <link rel="self" href="http://example.com/resource/123" />
+</resource>

@@ -1,10 +1,33 @@
 describe Huddle::RemoteResource do
   let(:klass) { Class.new { include Huddle::RemoteResource } }
+  let(:parsed_xml) { klass.parse_xml(fixture("resource_with_links.xml"), at_xpath: "/resource") }
+  subject { klass.new(parsed_xml) }
 
   describe "#new" do
     it "sets parsed_xml to given XML" do
-      instance = klass.new(:parsed_xml)
-      expect(instance.parsed_xml).to eq(:parsed_xml)
+      expect(subject.parsed_xml).to eq(parsed_xml)
+    end
+  end
+
+  describe "#links" do
+    it "returns hash of links from XML" do
+      expect(subject.links).to eq({
+        "bar" => "http://example.com/bar/2",
+        "foo" => "http://example.com/foo/1",
+        "self" => "http://example.com/resource/123"
+      })
+    end
+  end
+
+  describe "#id" do
+    it "returns last path element from self link, as integer" do
+      expect(subject.id).to eq(123)
+    end
+
+    it "returns nil if no self link" do
+      allow(subject).to receive(:links).
+        and_return({})
+      expect(subject.id).to be_nil
     end
   end
 
