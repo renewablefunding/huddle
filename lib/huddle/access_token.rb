@@ -41,6 +41,10 @@ module Huddle
       @refresh_token = refresh_token
     end
 
+    def to_s
+      access_token
+    end
+
     def access_token
       refresh! if expired?
       @access_token

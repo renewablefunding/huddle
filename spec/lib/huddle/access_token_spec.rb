@@ -62,6 +62,13 @@ describe Huddle::AccessToken do
     end
   end
 
+  describe "#to_s" do
+    it "returns access_token" do
+      allow(subject).to receive(:access_token).and_return("fancy")
+      expect(subject.to_s).to eq("fancy")
+    end
+  end
+
   describe "#expires_at" do
     it "is calculated based on expires_in" do
       frozen_time = Time.now
