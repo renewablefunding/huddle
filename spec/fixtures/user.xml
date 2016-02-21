@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+﻿
+<user xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <link rel="self" href="https://api.huddle.net/users/1" />
+  <profile>
+    <personal>
+      <firstname>Jane</firstname>
+      <surname>Doe</surname>
+      <displayname>Jane Doe</displayname>
+    </personal>
+    <contacts>
+      <contact rel="mail" value="jane@example.com" />
+    </contacts>
+  </profile>
+  <membership>
+    <workspaces>
+      <workspace type="shared" title="Workspace One">
+        <link rel="self" href="https://api.huddle.net/workspaces/1" />
+        <link rel="documentLibrary" href="https://api.huddle.net/files/workspaces/1/folders/root" />
+      </workspace>
+      <workspace type="shared" title="Workspace Two">
+        <link rel="self" href="https://api.huddle.net/workspaces/2" />
+        <link rel="documentLibrary" href="https://api.huddle.net/files/workspaces/2/folders/root" />
+      </workspace>
+    </workspaces>
+  </membership>
+</user>

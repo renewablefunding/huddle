@@ -1,9 +1,15 @@
 describe Huddle::User do
-  let(:parsed_xml) { double }
+  let(:parsed_xml) { described_class.parse_xml(fixture("user.xml")) }
   subject { described_class.new(parsed_xml) }
 
   it "is a RemoteResource" do
     expect(subject).to be_a(Huddle::RemoteResource)
+  end
+
+  describe "#name" do
+    it "returns display name from profile in XML" do
+      expect(subject.name).to eq("Jane Doe")
+    end
   end
 
   describe "#workspaces" do
