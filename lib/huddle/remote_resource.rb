@@ -28,6 +28,24 @@ module Huddle
     end
 
     module ClassMethods
+      attr_accessor :resource_path
+
+      def find(**path_options)
+        find_by_path(resource_path_for(**path_options))
+      end
+
+      def find_by_path(path)
+        new(fetch_xml(path))
+      end
+
+      def resource_path_for(**path_options)
+        path = resource_path.dup
+        path_options.each do |key, value|
+          path.gsub!(/:#{key}/, value.to_s)
+        end
+        path
+      end
+
       def root_element
         self.name.split("::").last.downcase
       end

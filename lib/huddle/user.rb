@@ -2,9 +2,11 @@ module Huddle
   class User
     include RemoteResource
 
+    self.resource_path = "users/:id"
+
     class << self
       def current
-        new(fetch_xml("entry"))
+        find_by_path("entry")
       end
     end
   end

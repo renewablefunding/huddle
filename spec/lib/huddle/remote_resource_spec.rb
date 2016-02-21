@@ -31,6 +31,47 @@ describe Huddle::RemoteResource do
     end
   end
 
+  describe ".find" do
+    it "returns instance created from XML at interpolated resource path" do
+      allow(klass).to receive(:resource_path_for).
+        with(option: 1, other_option: 2).
+        and_return(:the_path)
+      allow(klass).to receive(:find_by_path).
+        with(:the_path).
+        and_return(:new_instance)
+      expect(klass.find(option: 1, other_option: 2)).
+        to eq(:new_instance)
+    end
+  end
+
+  describe ".find_by_path" do
+    it "returns instance created from fetched XML at given path" do
+      allow(klass).to receive(:fetch_xml).
+        with(:the_path).
+        and_return(:fetched_xml)
+      allow(klass).to receive(:new).
+        with(:fetched_xml).
+        and_return(:new_instance)
+      expect(klass.find_by_path(:the_path)).to eq(:new_instance)
+    end
+  end
+
+  describe ".resource_path" do
+    it "has a setter and getter" do
+      klass.resource_path = "fabaloo"
+      expect(klass.resource_path).to eq("fabaloo")
+    end
+  end
+
+  describe ".resource_path_for" do
+    it "returns interpolated resource_path with given options" do
+      allow(klass).to receive(:resource_path).
+        and_return("resource/:something/:id")
+      expect(klass.resource_path_for(something: "foo", id: "bar")).
+        to eq("resource/foo/bar")
+    end
+  end
+
   describe ".fetch_xml" do
     before(:each) do
       allow(Huddle).to receive(:session_token).
