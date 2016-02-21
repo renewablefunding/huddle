@@ -18,6 +18,15 @@ describe Huddle::Workspace do
     end
   end
 
+  describe "#document_library_folder" do
+    it "returns root document library folder from links" do
+      allow(Huddle::Folder).to receive(:find_by_path).
+        with("/files/workspaces/1/folders/root").
+        and_return(:the_folder)
+      expect(subject.document_library_folder).to eq(:the_folder)
+    end
+  end
+
   describe ".resource_path" do
     it "returns Huddle workspace path mask" do
       expect(described_class.resource_path).to eq("/workspaces/:id")

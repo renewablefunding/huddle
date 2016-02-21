@@ -1,0 +1,21 @@
+<folder xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" title="Folder One" displayName="Folder One" description="">
+  <link rel="self" href="https://api.huddle.net/files/folders/1" />
+  <updated>2016-01-02T01:10:00.00Z</updated>
+  <created>2016-01-01T01:10:00.00Z</created>
+  <workspace title="Workspace One">
+    <link rel="self" href="https://api.huddle.net/workspaces/1" />
+  </workspace>
+  <actor name="Jane Doe" email="jane@example.com" rel="owner">
+    <link rel="self" href="https://api.huddle.net/users/1" />
+  </actor>
+  <folders>
+    <folder title="Folder Two" displayName="Folder Two" description="">
+      <link rel="self" href="https://api.huddle.net/files/folders/2" />
+    </folder>
+  </folders>
+  <documents>
+    <document title="Document One" description="A Huddle Document">
+      <link rel="self" href="https://api.huddle.net/files/documents/1" />
+    </document>
+  </documents>
+</folder>

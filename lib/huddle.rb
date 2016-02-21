@@ -4,6 +4,7 @@ require "huddle/remote_resource"
 require "huddle/access_token"
 require "huddle/user"
 require "huddle/workspace"
+require "huddle/folder"
 
 module Huddle
   class << self
