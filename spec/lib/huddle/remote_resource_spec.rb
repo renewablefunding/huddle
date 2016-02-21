@@ -9,6 +9,26 @@ describe Huddle::RemoteResource do
     end
   end
 
+  describe "#fetch_from_link" do
+    let(:type_class) { double }
+    before(:each) do
+      allow(type_class).to receive(:find_by_path).
+        with("http://example.com/foo/1").
+        and_return(:the_fetched_link).once
+    end
+
+    it "finds given link by path and instantiates given type" do
+      expect(subject.fetch_from_link("foo", type: type_class)).
+        to eq(:the_fetched_link)
+    end
+
+    it "fetches links only once" do
+      subject.fetch_from_link("foo", type: type_class)
+      expect(subject.fetch_from_link("foo", type: type_class)).
+        to eq(:the_fetched_link)
+    end
+  end
+
   describe "#links" do
     it "returns hash of links from XML" do
       expect(subject.links).to eq({

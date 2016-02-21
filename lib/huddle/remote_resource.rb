@@ -13,12 +13,17 @@ module Huddle
 
     def initialize(parsed_xml)
       @parsed_xml = parsed_xml
+      @fetched_links = {}
     end
 
     def id
       self_link = links["self"]
       return unless self_link
       self_link.split("/").last.to_i
+    end
+
+    def fetch_from_link(link, type:)
+      @fetched_links[link] ||= type.find_by_path(links[link])
     end
 
     def links

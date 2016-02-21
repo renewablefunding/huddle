@@ -13,7 +13,7 @@ module Huddle
     end
 
     def document_library_folder
-      Huddle::Folder.find_by_path(links["documentLibrary"])
+      fetch_from_link("documentLibrary", type: Huddle::Folder)
     end
   end
 end
