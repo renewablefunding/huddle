@@ -5,4 +5,22 @@ describe Huddle::Workspace do
   it "is a RemoteResource" do
     expect(subject).to be_a(Huddle::RemoteResource)
   end
+
+  describe "#type" do
+    it "returns type attribute from XML root" do
+      expect(subject.type).to eq("shared")
+    end
+  end
+
+  describe "#title" do
+    it "returns type attribute from XML root" do
+      expect(subject.title).to eq("Workspace One")
+    end
+  end
+
+  describe ".resource_path" do
+    it "returns Huddle workspace path mask" do
+      expect(described_class.resource_path).to eq("/workspaces/:id")
+    end
+  end
 end
