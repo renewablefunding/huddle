@@ -55,8 +55,9 @@ module Huddle
       end
 
       def fetch_xml(path, at_xpath: "/#{root_element}")
+        path.prepend("/") unless path[0] == "/"
         response = OpenURI.open_uri(
-          "https://api.huddle.net/#{path}",
+          "https://api.huddle.net#{path}",
           {
             "Authorization" => "OAuth2 #{Huddle.session_token}",
             "Accept" => "application/vnd.huddle.data+xml"

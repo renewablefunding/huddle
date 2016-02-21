@@ -91,11 +91,19 @@ describe Huddle::RemoteResource do
         and_return(:parsed_xml)
       allow(klass).to receive(:root_element).
         and_return(:the_root_element)
-      expect(klass.fetch_xml("the/path")).
+      expect(klass.fetch_xml("/the/path")).
         to eq(:parsed_xml)
     end
 
     it "uses given root xpath element" do
+      allow(klass).to receive(:parse_xml).
+        with(:the_xml, at_xpath: :custom_element).
+        and_return(:parsed_xml)
+      expect(klass.fetch_xml("/the/path", at_xpath: :custom_element)).
+        to eq(:parsed_xml)
+    end
+
+    it "converts non-root paths" do
       allow(klass).to receive(:parse_xml).
         with(:the_xml, at_xpath: :custom_element).
         and_return(:parsed_xml)
