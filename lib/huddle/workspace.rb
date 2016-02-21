@@ -2,7 +2,7 @@ module Huddle
   class Workspace
     include RemoteResource
 
-    self.resource_path = "/workspaces/:id"
+    find_at "/workspaces/:id"
 
     def type
       parsed_xml.get("type")

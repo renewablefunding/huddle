@@ -85,9 +85,9 @@ describe Huddle::RemoteResource do
     end
   end
 
-  describe ".resource_path" do
-    it "has a setter and getter" do
-      klass.resource_path = "fabaloo"
+  describe ".find_at" do
+    it "sets resource_path" do
+      klass.find_at "fabaloo"
       expect(klass.resource_path).to eq("fabaloo")
     end
   end

@@ -39,7 +39,11 @@ module Huddle
     end
 
     module ClassMethods
-      attr_accessor :resource_path
+      attr_reader :resource_path
+
+      def find_at(masked_path)
+        @resource_path = masked_path
+      end
 
       def find(**path_options)
         find_by_path(resource_path_for(**path_options))

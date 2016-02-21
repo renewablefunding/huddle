@@ -2,6 +2,6 @@ module Huddle
   class Folder
     include RemoteResource
 
-    self.resource_path = "/files/folders/:id"
+    find_at "/files/folders/:id"
   end
 end

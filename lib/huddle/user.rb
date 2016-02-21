@@ -2,7 +2,7 @@ module Huddle
   class User
     include RemoteResource
 
-    self.resource_path = "/users/:id"
+    find_at "/users/:id"
 
     def name
       parsed_xml.at_xpath("profile/personal/displayname").text
