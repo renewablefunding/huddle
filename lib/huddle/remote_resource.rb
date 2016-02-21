@@ -16,6 +16,10 @@ module Huddle
       @fetched_links = {}
     end
 
+    def inspect
+      "#<#{self.class}:#{"0x00%x" % (object_id << 1)} id=#{id || "nil"}>"
+    end
+
     def id
       self_link = links["self"]
       return unless self_link

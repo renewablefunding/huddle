@@ -9,6 +9,15 @@ describe Huddle::RemoteResource do
     end
   end
 
+  describe "#inspect" do
+    it "returns simplified inspect without parsed_xml" do
+      allow(klass).to receive(:to_s).and_return("MyClass")
+      expect(subject.inspect).to eq(
+        "#<MyClass:#{"0x00%x" % (subject.object_id << 1)} id=123>"
+      )
+    end
+  end
+
   describe "#fetch_from_link" do
     let(:type_class) { double }
     before(:each) do
