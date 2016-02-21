@@ -72,12 +72,31 @@ describe Huddle::RemoteResource do
     end
   end
 
+  describe ".expand_uri" do
+    it "returns argument if scheme already set" do
+      expect(klass.expand_uri("http://example.com/goof")).
+        to eq("http://example.com/goof")
+    end
+
+    it "adds scheme and host if not provided" do
+      expect(klass.expand_uri("/goof")).
+        to eq("https://api.huddle.net/goof")
+    end
+
+    it "works with non-root paths" do
+      expect(klass.expand_uri("goof")).
+        to eq("https://api.huddle.net/goof")
+    end
+  end
+
   describe ".fetch_xml" do
     before(:each) do
       allow(Huddle).to receive(:session_token).
         and_return("a1b2c3")
+      allow(klass).to receive(:expand_uri).with("/the/path").
+        and_return("fully_qualified_uri")
       allow(OpenURI).to receive(:open_uri).with(
-        "https://api.huddle.net/the/path",
+        "fully_qualified_uri",
         {
           "Authorization" => "OAuth2 a1b2c3",
           "Accept" => "application/vnd.huddle.data+xml"
@@ -100,14 +119,6 @@ describe Huddle::RemoteResource do
         with(:the_xml, at_xpath: :custom_element).
         and_return(:parsed_xml)
       expect(klass.fetch_xml("/the/path", at_xpath: :custom_element)).
-        to eq(:parsed_xml)
-    end
-
-    it "converts non-root paths" do
-      allow(klass).to receive(:parse_xml).
-        with(:the_xml, at_xpath: :custom_element).
-        and_return(:parsed_xml)
-      expect(klass.fetch_xml("the/path", at_xpath: :custom_element)).
         to eq(:parsed_xml)
     end
   end

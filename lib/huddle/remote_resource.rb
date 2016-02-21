@@ -3,6 +3,8 @@ require "oga"
 
 module Huddle
   module RemoteResource
+    BASE_URI = URI("https://api.huddle.net")
+
     def self.included(klass)
       klass.extend ClassMethods
     end
@@ -22,7 +24,7 @@ module Huddle
     def links
       @links ||= begin
         parsed_xml.xpath("link").each_with_object({}) do |link, memo|
-          memo[link.get("rel")] = link.get("href").gsub("https://api.huddle.net", "")
+          memo[link.get("rel")] = link.get("href")
         end
       end
     end
@@ -54,10 +56,17 @@ module Huddle
         Oga.parse_xml(raw_xml).at_xpath(at_xpath)
       end
 
+      def expand_uri(uri_or_path)
+        URI(uri_or_path).tap { |uri|
+          uri.path.prepend("/") unless uri.path[0] == "/"
+          uri.scheme ||= BASE_URI.scheme
+          uri.host ||= BASE_URI.host
+        }.to_s
+      end
+
       def fetch_xml(path, at_xpath: "/#{root_element}")
-        path.prepend("/") unless path[0] == "/"
         response = OpenURI.open_uri(
-          "https://api.huddle.net#{path}",
+          expand_uri(path),
           {
             "Authorization" => "OAuth2 #{Huddle.session_token}",
             "Accept" => "application/vnd.huddle.data+xml"
