@@ -6,6 +6,18 @@ describe Huddle::User do
     expect(subject).to be_a(Huddle::RemoteResource)
   end
 
+  describe "#workspaces" do
+    it "returns instances for each workspace element in XML" do
+      allow(Huddle::Workspace).to receive(:new).with(:workspace_1_xml).
+        and_return(:workspace_1)
+      allow(Huddle::Workspace).to receive(:new).with(:workspace_2_xml).
+        and_return(:workspace_2)
+      allow(parsed_xml).to receive(:xpath).with("membership/workspaces/workspace").
+        and_return([:workspace_1_xml, :workspace_2_xml])
+      expect(subject.workspaces).to eq([:workspace_1, :workspace_2])
+    end
+  end
+
   describe ".resource_path" do
     it "returns Huddle user path mask" do
       expect(described_class.resource_path).to eq("/users/:id")
