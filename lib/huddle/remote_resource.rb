@@ -9,11 +9,12 @@ module Huddle
       klass.extend ClassMethods
     end
 
-    attr_reader :parsed_xml
+    attr_reader :parsed_xml, :session
 
-    def initialize(parsed_xml)
+    def initialize(parsed_xml, session: Huddle.default_session)
       @parsed_xml = parsed_xml
       @fetched_links = {}
+      @session = session
     end
 
     def inspect
@@ -27,7 +28,7 @@ module Huddle
     end
 
     def fetch_from_link(link, type:)
-      @fetched_links[link] ||= type.find_by_path(links[link])
+      @fetched_links[link] ||= type.find_by_path(links[link], session: session)
     end
 
     def links
@@ -45,12 +46,12 @@ module Huddle
         @resource_path = masked_path
       end
 
-      def find(**path_options)
-        find_by_path(resource_path_for(**path_options))
+      def find(session: Huddle.default_session, **path_options)
+        find_by_path(resource_path_for(**path_options), session: session)
       end
 
-      def find_by_path(path)
-        new(fetch_xml(path))
+      def find_by_path(path, session: Huddle.default_session)
+        new(fetch_xml(path, session: session), session: session)
       end
 
       def resource_path_for(**path_options)
@@ -77,11 +78,11 @@ module Huddle
         }.to_s
       end
 
-      def fetch_xml(path, at_xpath: "/#{root_element}")
+      def fetch_xml(path, at_xpath: "/#{root_element}", session:)
         response = OpenURI.open_uri(
           expand_uri(path),
           {
-            "Authorization" => "OAuth2 #{Huddle.session_token}",
+            "Authorization" => "OAuth2 #{session}",
             "Accept" => "application/vnd.huddle.data+xml"
           }
         )

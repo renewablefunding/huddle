@@ -1,11 +1,19 @@
 describe Huddle::RemoteResource do
   let(:klass) { Class.new { include Huddle::RemoteResource } }
+  let(:session) { double(Huddle::Session, to_s: "a_token") }
   let(:parsed_xml) { klass.parse_xml(fixture("resource_with_links.xml"), at_xpath: "/resource") }
-  subject { klass.new(parsed_xml) }
+  subject { klass.new(parsed_xml, session: session) }
 
   describe "#new" do
     it "sets parsed_xml to given XML" do
       expect(subject.parsed_xml).to eq(parsed_xml)
+    end
+
+    it "uses default session if none given" do
+      session = double
+      allow(Huddle).to receive(:default_session).and_return(:a_session)
+      using_default = klass.new(parsed_xml)
+      expect(using_default.instance_variable_get(:@session)).to eq(:a_session)
     end
   end
 
@@ -22,7 +30,7 @@ describe Huddle::RemoteResource do
     let(:type_class) { double }
     before(:each) do
       allow(type_class).to receive(:find_by_path).
-        with("http://example.com/foo/1").
+        with("http://example.com/foo/1", session: session).
         and_return(:the_fetched_link).once
     end
 
@@ -61,12 +69,24 @@ describe Huddle::RemoteResource do
   end
 
   describe ".find" do
-    it "returns instance created from XML at interpolated resource path" do
+    before(:each) do
       allow(klass).to receive(:resource_path_for).
         with(option: 1, other_option: 2).
         and_return(:the_path)
+    end
+
+    it "returns instance created from XML at interpolated resource path" do
       allow(klass).to receive(:find_by_path).
-        with(:the_path).
+        with(:the_path, session: session).
+        and_return(:new_instance)
+      expect(klass.find(option: 1, other_option: 2, session: session)).
+        to eq(:new_instance)
+    end
+
+    it "uses default session if not specified" do
+      allow(Huddle).to receive(:default_session).and_return(:a_session)
+      allow(klass).to receive(:find_by_path).
+        with(:the_path, session: :a_session).
         and_return(:new_instance)
       expect(klass.find(option: 1, other_option: 2)).
         to eq(:new_instance)
@@ -76,10 +96,21 @@ describe Huddle::RemoteResource do
   describe ".find_by_path" do
     it "returns instance created from fetched XML at given path" do
       allow(klass).to receive(:fetch_xml).
-        with(:the_path).
+        with(:the_path, session: session).
         and_return(:fetched_xml)
       allow(klass).to receive(:new).
-        with(:fetched_xml).
+        with(:fetched_xml, session: session).
+        and_return(:new_instance)
+      expect(klass.find_by_path(:the_path, session: session)).to eq(:new_instance)
+    end
+
+    it "uses default session if not specified" do
+      allow(Huddle).to receive(:default_session).and_return(:a_session)
+      allow(klass).to receive(:fetch_xml).
+        with(:the_path, session: :a_session).
+        and_return(:fetched_xml)
+      allow(klass).to receive(:new).
+        with(:fetched_xml, session: :a_session).
         and_return(:new_instance)
       expect(klass.find_by_path(:the_path)).to eq(:new_instance)
     end
@@ -120,14 +151,12 @@ describe Huddle::RemoteResource do
 
   describe ".fetch_xml" do
     before(:each) do
-      allow(Huddle).to receive(:session_token).
-        and_return("a1b2c3")
       allow(klass).to receive(:expand_uri).with("/the/path").
         and_return("fully_qualified_uri")
       allow(OpenURI).to receive(:open_uri).with(
         "fully_qualified_uri",
         {
-          "Authorization" => "OAuth2 a1b2c3",
+          "Authorization" => "OAuth2 a_token",
           "Accept" => "application/vnd.huddle.data+xml"
         }
       ).and_return(double(:read => :the_xml))
@@ -139,7 +168,7 @@ describe Huddle::RemoteResource do
         and_return(:parsed_xml)
       allow(klass).to receive(:root_element).
         and_return(:the_root_element)
-      expect(klass.fetch_xml("/the/path")).
+      expect(klass.fetch_xml("/the/path", session: session)).
         to eq(:parsed_xml)
     end
 
@@ -147,7 +176,7 @@ describe Huddle::RemoteResource do
       allow(klass).to receive(:parse_xml).
         with(:the_xml, at_xpath: :custom_element).
         and_return(:parsed_xml)
-      expect(klass.fetch_xml("/the/path", at_xpath: :custom_element)).
+      expect(klass.fetch_xml("/the/path", at_xpath: :custom_element, session: session)).
         to eq(:parsed_xml)
     end
   end

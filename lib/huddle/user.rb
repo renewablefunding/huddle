@@ -9,14 +9,14 @@ module Huddle
     end
 
     def workspaces
-      parsed_xml.xpath("membership/workspaces/workspace").map { |workspace_xml|
-        Huddle::Workspace.new(workspace_xml)
+      @workspaces ||= parsed_xml.xpath("membership/workspaces/workspace").map { |workspace_xml|
+        Huddle::Workspace.new(workspace_xml, session: @session)
       }
     end
 
     class << self
-      def current
-        find_by_path("/entry")
+      def current(session: Huddle.default_session)
+        find_by_path("/entry", session: session)
       end
     end
   end

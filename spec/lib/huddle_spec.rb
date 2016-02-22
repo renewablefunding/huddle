@@ -28,7 +28,7 @@ describe Huddle do
       allow(Huddle::Session).to receive(:generate).
         and_return(:an_access_token)
       described_class.authenticate!
-      expect(described_class.session_token).to eq(:an_access_token)
+      expect(described_class.default_session).to eq(:an_access_token)
     end
   end
 end

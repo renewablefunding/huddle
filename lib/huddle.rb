@@ -8,7 +8,7 @@ require "huddle/folder"
 
 module Huddle
   class << self
-    attr_reader :session_token
+    attr_reader :default_session
 
     def configuration
       @configuration ||= Configuration.new
@@ -19,7 +19,7 @@ module Huddle
     end
 
     def authenticate!
-      @session_token = Huddle::Session.generate
+      @default_session = Huddle::Session.generate
     end
   end
 end
