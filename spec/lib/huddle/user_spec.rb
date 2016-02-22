@@ -7,6 +7,11 @@ describe Huddle::User do
   end
 
   describe "#name" do
+    it "returns name attribute if present" do
+      allow(parsed_xml).to receive(:get).with("name").and_return("June Day")
+      expect(subject.name).to eq("June Day")
+    end
+
     it "returns display name from profile in XML" do
       expect(subject.name).to eq("Jane Doe")
     end

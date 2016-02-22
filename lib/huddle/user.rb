@@ -5,7 +5,8 @@ module Huddle
     find_at "/users/:id"
 
     def name
-      parsed_xml.at_xpath("profile/personal/displayname").text
+      parsed_xml.get("name") ||
+        parsed_xml.at_xpath("profile/personal/displayname").text
     end
 
     def workspaces
