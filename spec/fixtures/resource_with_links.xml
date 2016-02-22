@@ -2,4 +2,6 @@
   <link rel="foo" href="http://example.com/foo/1" />
   <link rel="bar" href="http://example.com/bar/2" />
   <link rel="self" href="http://example.com/resource/123" />
+  <updated>2016-01-02T01:10:00.00Z</updated>
+  <created>2016-01-01T01:10:00.00Z</created>
 </resource>

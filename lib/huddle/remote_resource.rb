@@ -32,6 +32,16 @@ module Huddle
       self_link.split("/").last.to_i
     end
 
+    def created_at
+      element = parsed_xml.at_xpath("created")
+      element && Time.parse(element.text)
+    end
+
+    def updated_at
+      element = parsed_xml.at_xpath("updated")
+      element && Time.parse(element.text)
+    end
+
     def reload!
       @parsed_xml = self.class.fetch_xml(links["self"], session: session)
       @associations = {}

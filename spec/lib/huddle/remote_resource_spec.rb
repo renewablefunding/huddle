@@ -95,6 +95,28 @@ describe Huddle::RemoteResource do
     end
   end
 
+  describe "#created_at" do
+    it "returns parsed text from 'created' element" do
+      expect(subject.created_at).to eq(Time.parse("2016-01-01T01:10:00.00Z"))
+    end
+
+    it "returns nil if no 'created' element" do
+      allow(parsed_xml).to receive(:at_xpath).with("created").and_return(nil)
+      expect(subject.created_at).to be_nil
+    end
+  end
+
+  describe "#updated_at" do
+    it "returns parsed text from 'updated' element" do
+      expect(subject.updated_at).to eq(Time.parse("2016-01-02T01:10:00.00Z"))
+    end
+
+    it "returns nil if no 'updated' element" do
+      allow(parsed_xml).to receive(:at_xpath).with("updated").and_return(nil)
+      expect(subject.updated_at).to be_nil
+    end
+  end
+
   describe "#reload!" do
     it "fetches from self-link, replaces XML, clears links and associations" do
       allow(klass).to receive(:fetch_xml).
