@@ -1,21 +1,46 @@
 describe Huddle::AccessToken do
+  let(:configuration) { Huddle.configuration }
   subject {
-    described_class.new(access_token: "5b", expires_in: 109, refresh_token: "p8")
+    described_class.new(access_token: "5b", expires_in: 109, refresh_token: "p8", configuration: configuration)
   }
 
   describe ".generate" do
-    it "gets access token from Huddle API and instantiates" do
+    before(:each) do
       allow(Net::HTTP).to receive(:post_form).
         with(Huddle::AccessToken::ENDPOINT, {
           grant_type: "authorization_code",
-          client_id: "1234",
-          redirect_uri: "zoo.net",
-          code: "5678"
+          client_id: configuration.client_id,
+          redirect_uri: configuration.redirect_uri,
+          code: configuration.authorization_code
         }).and_return(double(:body => :a_response_body))
       allow(described_class).to receive(:from_json_response).
-        with(:a_response_body).
+        with(:a_response_body, configuration: configuration).
         and_return(:the_parsed_response)
-      expect(described_class.generate).to eq(:the_parsed_response)
+    end
+
+    context "with specified configuration" do
+      let(:configuration) {
+        Huddle::Configuration.new(client_id: "33", redirect_uri: "foo.bar", authorization_code: "99")
+      }
+
+      it "generates access token from Huddle API using specified configuration" do
+        expect(described_class.generate(configuration: configuration)).to eq(:the_parsed_response)
+      end
+    end
+
+    context "without specified configuration" do
+      it "generates access token from Huddle API using default configuration" do
+        expect(described_class.generate).to eq(:the_parsed_response)
+      end
+    end
+
+    it "validates configuration first" do
+      expect(Net::HTTP).to receive(:post_form).never
+      allow(configuration).to receive(:validate!).
+        and_raise(Huddle::Configuration::MissingSettingError)
+      expect {
+        described_class.generate(configuration: Huddle::Configuration.new)
+      }.to raise_error(Huddle::Configuration::MissingSettingError)
     end
   end
 
@@ -40,11 +65,13 @@ describe Huddle::AccessToken do
     it "instantiates object using given JSON" do
       allow(described_class).to receive(:parse_json_response).
         with(:a_response).
-        and_return(:parsed_response)
+        and_return({ foo: :bar })
       allow(described_class).to receive(:new).
-        with(:parsed_response).
+        with({ foo: :bar, configuration: :a_config }).
         and_return(:new_instance)
-      expect(described_class.from_json_response(:a_response)).to eq(:new_instance)
+      expect(
+        described_class.from_json_response(:a_response, configuration: :a_config)
+      ).to eq(:new_instance)
     end
   end
 
@@ -110,7 +137,7 @@ describe Huddle::AccessToken do
       allow(Net::HTTP).to receive(:post_form).
         with(Huddle::AccessToken::ENDPOINT, {
           grant_type: "refresh_token",
-          client_id: "1234",
+          client_id: configuration.client_id,
           refresh_token: "p8"
         }).and_return(double(:body => :a_response_body))
       allow(described_class).to receive(:parse_json_response).

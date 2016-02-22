@@ -6,15 +6,16 @@ module Huddle
     ENDPOINT = URI("https://login.huddle.net/token")
 
     class << self
-      def generate
+      def generate(configuration: Huddle.configuration)
+        configuration.validate!
         response = Net::HTTP.post_form(
           ENDPOINT,
           grant_type: "authorization_code",
-          client_id: Huddle.configuration.client_id,
-          redirect_uri: Huddle.configuration.redirect_uri,
-          code: Huddle.configuration.authorization_code
+          client_id: configuration.client_id,
+          redirect_uri: configuration.redirect_uri,
+          code: configuration.authorization_code
         )
-        from_json_response(response.body)
+        from_json_response(response.body, configuration: configuration)
       end
 
       def parse_json_response(response)
@@ -26,19 +27,20 @@ module Huddle
         }
       end
 
-      def from_json_response(response)
+      def from_json_response(response, configuration:)
         new(
-          parse_json_response(response)
+          parse_json_response(response).merge(configuration: configuration)
         )
       end
     end
 
     attr_reader :refresh_token, :expires_at
 
-    def initialize(access_token:, expires_in:, refresh_token:)
+    def initialize(access_token:, expires_in:, refresh_token:, configuration:)
       @access_token = access_token
       @expires_at = Time.now + expires_in
       @refresh_token = refresh_token
+      @configuration = configuration
     end
 
     def to_s
@@ -54,7 +56,7 @@ module Huddle
       response = Net::HTTP.post_form(
         ENDPOINT,
         grant_type: "refresh_token",
-        client_id: Huddle.configuration.client_id,
+        client_id: @configuration.client_id,
         refresh_token: refresh_token
       )
       response = self.class.parse_json_response(response.body)
