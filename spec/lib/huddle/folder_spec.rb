@@ -36,6 +36,21 @@ describe Huddle::Folder do
     end
   end
 
+  describe "#documents" do
+    it "returns instances for each document element" do
+      allow(subject).to receive(:workspace).
+        and_return(:the_workspace)
+      allow(subject).to receive(:many).
+        with(
+          "documents/document",
+          type: Huddle::Document,
+          associations: { "workspace" => :the_workspace, "folder" => subject }
+        ).
+        and_return([:document_1, :document_2])
+      expect(subject.documents).to eq([:document_1, :document_2])
+    end
+  end
+
   describe "#workspace" do
     it "returns workspace instance" do
       allow(subject).to receive(:one).

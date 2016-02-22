@@ -16,6 +16,14 @@ module Huddle
       many("folders/folder", type: Huddle::Folder, associations: { "workspace" => workspace })
     end
 
+    def documents
+      many(
+        "documents/document",
+        type: Huddle::Document,
+        associations: { "workspace" => workspace, "folder" => self }
+      )
+    end
+
     def workspace
       one("workspace", type: Huddle::Workspace, fetch: true)
     end

@@ -5,6 +5,7 @@ require "huddle/session"
 require "huddle/user"
 require "huddle/workspace"
 require "huddle/folder"
+require "huddle/document"
 
 module Huddle
   class << self

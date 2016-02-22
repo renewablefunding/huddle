@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<document xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" title="Document One" description="The first document">
+  <link rel="self" href="https://api.huddle.net/files/documents/1" />
+  <link rel="version-history" href="https://api.huddle.net/files/documents/1/versions" />
+  <link rel="comments" href="https://api.huddle.net/files/documents/1/comments" count="0" />
+  <link rel="approvals" href="https://api.huddle.net/files/documents/1/approvals" />
+  <link rel="printed" href="https://api.huddle.net/files/documents/1/versions/123/audittrail/printed" />
+  <link rel="viewed" href="https://api.huddle.net/files/documents/1/versions/123/audittrail/viewed" />
+  <link rel="permissions" href="https://api.huddle.net/files/folders/1/permissions" />
+  <link rel="share" href="https://api.huddle.net/files/documents/1/share" />
+  <link rel="audittrail" href="https://api.huddle.net/files/documents/1/audittrail" />
+  <link rel="bulk-delete" href="https://api.huddle.net/files/bulkprocess/delete" />
+  <link rel="previews" href="https://api.huddle.net/files/documents/versions/123/previews" />
+  <link rel="make-offline" href="https://api.huddle.net/files/documents/1" />
+  <link rel="content" href="https://api.huddle.net/files/documents/123/content" type="application/pdf" title="Document One.pdf" />
+  <link rel="parent" href="https://api.huddle.net/files/folders/1" title="Folder One" />
+  <link rel="paged-parent-folder" href="https://api.huddle.net/files/pagedfolders/1" title="Folder One" />
+  <link rel="parent-folder" href="https://api.huddle.net/files/folders/1" title="Folder One" />
+  <link rel="edit" href="https://api.huddle.net/files/documents/1/edit" />
+  <link rel="create-version" href="https://api.huddle.net/files/documents/1/version" />
+  <link rel="lock" href="https://api.huddle.net/files/documents/1/lock" />
+  <link rel="delete" href="https://api.huddle.net/files/documents/1" />
+  <link rel="move" href="https://api.huddle.net/files/documents/1/edit" />
+  <link rel="copy" href="https://api.huddle.net/files/documents/1/copy" />
+  <link rel="publish" href="https://api.huddle.net/files/documents/1/publications" />
+  <actor name="Jane Doe" email="jane@example.com" rel="owner">
+    <link rel="self" href="https://api.huddle.net/users/1" />
+  </actor>
+  <actor name="Jon Doe" email="jon@example.com" rel="updated-by">
+    <link rel="self" href="https://api.huddle.net/users/2" />
+  </actor>
+  <version>2</version>
+  <size>35938</size>
+  <updated>2016-01-05T02:00:50.500Z</updated>
+  <created>2016-01-04T06:00:50.500Z</created>
+  <processingStatus>Complete</processingStatus>
+  <views>6</views>
+  <workspace title="Workspace One">
+    <link rel="self" href="https://api.huddle.net/workspaces/1" />
+  </workspace>
+  <publications>
+    <scope>none</scope>
+    <publishedDate xsi:nil="true" />
+  </publications>
+</document>

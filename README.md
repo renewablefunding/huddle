@@ -139,18 +139,56 @@ To retrieve the user's workspaces:
 workspaces = user.workspaces
 # => [#<Huddle::Workspace:0x007fc649ade000 id=1>, #<Huddle::Workspace:0x007fc649addf38 id=2>]
 
-first_workspace = workspace.first
+workspace = workspaces.first
 # => #<Huddle::Workspace:0x007fc649ade000 id=1>
 
-first_workspace.type # => "shared"
-first_workspace.title # => "Your first workspace"
+workspace.type # => "shared"
+workspace.title # => "Your first workspace"
 ```
 
 Each workspace links to a root folder, the "Document Library," and this is easy to retrieve:
 
 ```ruby
-first_workspace.document_library_folder
+root_folder = workspace.document_library_folder
+# => #<Huddle::Folder:0x007fc649ad48c0 id=1>
+```
+
+### Folders
+
+The "Document Library" root folder can contain folders itself, which are accessible at `#folders`:
+
+```ruby
+folders = root_folder.folders
+# => [#<Huddle::Folder:0x007ffd711828a8 id=2>, #<Huddle::Folder:0x007ffd71182768 id=3>]
+
+folder = folders.first
+# => #<Huddle::Folder:0x007ffd711828a8 id=2>
+```
+
+### Documents
+
+All folders have documents (including the root "Document Library" folder), and they can be retrieved directly from the folder:
+
+```ruby
+documents = folder.documents
+# => [#<Huddle::Document:0x007ffd732376c0 id=1>, #<Huddle::Document:0x007ffd73237620 id=2>]
+
+document = documents.first
+# => #<Huddle::Document:0x007ffd732376c0 id=1>
+
+document.title # => "My first document"
+document.description # => "A document introducing documents"
+document.owner #=> #<Huddle::User:0x007fc649afe800 id=1>
+```
+
+Documents will always have links back to their parent folder and containing workspace:
+
+```ruby
+parent_folder = document.folder
 # => #<Huddle::Folder:0x007fc649ad48c0 id=3>
+
+workspace = document.workspace
+# => #<Huddle::Workspace:0x007fc649ade000 id=1>
 ```
 
 ## Development
