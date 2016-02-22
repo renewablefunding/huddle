@@ -9,12 +9,13 @@ module Huddle
       klass.extend ClassMethods
     end
 
-    attr_reader :parsed_xml, :session
+    attr_reader :parsed_xml, :session, :associations
 
-    def initialize(parsed_xml, session: Huddle.default_session)
+    def initialize(parsed_xml, session: Huddle.default_session, fetch: false, associations: {})
       @parsed_xml = parsed_xml
-      @fetched_links = {}
+      @associations = associations
       @session = session
+      reload! if fetch
     end
 
     def inspect
@@ -27,8 +28,26 @@ module Huddle
       self_link.split("/").last.to_i
     end
 
-    def fetch_from_link(link, type:)
-      @fetched_links[link] ||= type.find_by_path(links[link], session: session)
+    def reload!
+      @parsed_xml = self.class.fetch_xml(links["self"], session: session)
+      @associations = {}
+      self
+    end
+
+    def one(xpath, type:, fetch: false, associations: {})
+      [many(xpath, type: type, fetch: fetch, associations: associations)].flatten.first
+    end
+
+    def many(xpath, type:, fetch: false, associations: {})
+      @associations[xpath] ||= parsed_xml.xpath(xpath).map { |association_xml|
+        type.new(association_xml, session: session, fetch: fetch, associations: associations)
+      }
+    end
+
+    def fetch_from_link(association_name, link:, type:, associations: {})
+      @associations[association_name] ||= begin
+        type.find_by_path(links[link], session: session, associations: associations)
+      end
     end
 
     def links
@@ -50,8 +69,8 @@ module Huddle
         find_by_path(resource_path_for(**path_options), session: session)
       end
 
-      def find_by_path(path, session: Huddle.default_session)
-        new(fetch_xml(path, session: session), session: session)
+      def find_by_path(path, session: Huddle.default_session, associations: {})
+        new(fetch_xml(path, session: session), session: session, associations: associations)
       end
 
       def resource_path_for(**path_options)

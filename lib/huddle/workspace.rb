@@ -13,7 +13,12 @@ module Huddle
     end
 
     def document_library_folder
-      fetch_from_link("documentLibrary", type: Huddle::Folder)
+      fetch_from_link(
+        "folder",
+        link: "documentLibrary",
+        type: Huddle::Folder,
+        associations: { "workspace" => self }
+      )
     end
   end
 end

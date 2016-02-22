@@ -13,21 +13,10 @@ describe Huddle::User do
   end
 
   describe "#workspaces" do
-    before(:each) do
-      allow(Huddle::Workspace).to receive(:new).with(:workspace_1_xml, session: :a_session).
-        and_return(:workspace_1)
-      allow(Huddle::Workspace).to receive(:new).with(:workspace_2_xml, session: :a_session).
-        and_return(:workspace_2)
-      allow(parsed_xml).to receive(:xpath).with("membership/workspaces/workspace").
-        and_return([:workspace_1_xml, :workspace_2_xml]).once
-    end
-
-    it "returns instances for each workspace element in XML" do
-      expect(subject.workspaces).to eq([:workspace_1, :workspace_2])
-    end
-
-    it "is memoized" do
-      subject.workspaces
+    it "returns instances for each workspace element" do
+      allow(subject).to receive(:many).
+        with("membership/workspaces/workspace", type: Huddle::Workspace).
+        and_return([:workspace_1, :workspace_2])
       expect(subject.workspaces).to eq([:workspace_1, :workspace_2])
     end
   end

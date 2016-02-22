@@ -9,9 +9,7 @@ module Huddle
     end
 
     def workspaces
-      @workspaces ||= parsed_xml.xpath("membership/workspaces/workspace").map { |workspace_xml|
-        Huddle::Workspace.new(workspace_xml, session: @session)
-      }
+      many("membership/workspaces/workspace", type: Huddle::Workspace)
     end
 
     class << self

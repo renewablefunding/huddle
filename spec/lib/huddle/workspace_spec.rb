@@ -21,7 +21,7 @@ describe Huddle::Workspace do
   describe "#document_library_folder" do
     it "returns root document library folder from links" do
       allow(subject).to receive(:fetch_from_link).
-        with("documentLibrary", type: Huddle::Folder).
+        with("folder", link: "documentLibrary", type: Huddle::Folder, associations: { "workspace" => subject }).
         and_return(:the_folder)
       expect(subject.document_library_folder).to eq(:the_folder)
     end

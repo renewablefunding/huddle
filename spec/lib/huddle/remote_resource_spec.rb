@@ -15,6 +15,15 @@ describe Huddle::RemoteResource do
       using_default = klass.new(parsed_xml)
       expect(using_default.instance_variable_get(:@session)).to eq(:a_session)
     end
+
+    it "calls #reload! if fetch argument is true" do
+      allow(klass).to receive(:fetch_xml).
+        with("http://example.com/resource/123", session: session).
+        and_return(:the_new_xml)
+      reloaded = klass.new(parsed_xml, fetch: true, session: session)
+      expect(reloaded.parsed_xml).to eq(:the_new_xml)
+    end
+  end
   end
 
   describe "#inspect" do
@@ -28,21 +37,32 @@ describe Huddle::RemoteResource do
 
   describe "#fetch_from_link" do
     let(:type_class) { double }
+    let(:fetched_link) { double }
+    let(:associations) { {} }
     before(:each) do
       allow(type_class).to receive(:find_by_path).
-        with("http://example.com/foo/1", session: session).
-        and_return(:the_fetched_link).once
+        with("http://example.com/foo/1", session: session, associations: associations).
+        and_return(fetched_link).once
     end
 
     it "finds given link by path and instantiates given type" do
-      expect(subject.fetch_from_link("foo", type: type_class)).
-        to eq(:the_fetched_link)
+      expect(subject.fetch_from_link("the_foo", link: "foo", type: type_class)).
+        to eq(fetched_link)
     end
 
     it "fetches links only once" do
-      subject.fetch_from_link("foo", type: type_class)
-      expect(subject.fetch_from_link("foo", type: type_class)).
-        to eq(:the_fetched_link)
+      subject.fetch_from_link("the_foo", link: "foo", type: type_class)
+      expect(subject.fetch_from_link("the_foo", link: "foo", type: type_class)).
+        to eq(fetched_link)
+    end
+
+    context "with associations" do
+      let(:associations) { :the_associations }
+
+      it "passes associations to fetch" do
+        expect(subject.fetch_from_link("the_foo", link: "foo", type: type_class, associations: :the_associations)).
+          to eq(fetched_link)
+      end
     end
   end
 
@@ -65,6 +85,84 @@ describe Huddle::RemoteResource do
       allow(subject).to receive(:links).
         and_return({})
       expect(subject.id).to be_nil
+    end
+  end
+
+  describe "#reload!" do
+    it "fetches from self-link, replaces XML, clears links and associations" do
+      allow(klass).to receive(:fetch_xml).
+        with("http://example.com/resource/123", session: session).
+        and_return(:the_new_xml)
+      subject.instance_variable_set(:@associations, { baz: "buzz" })
+      subject.reload!
+      expect(subject.parsed_xml).to eq(:the_new_xml)
+      expect(subject.associations).to eq({})
+    end
+  end
+
+  describe "#many" do
+    let(:type_class) { double }
+    let(:fetch) { false }
+    let(:associations) { {} }
+    before(:each) do
+      allow(type_class).to receive(:new).
+        with(:other_1_xml, session: session, fetch: fetch, associations: associations).
+        and_return(:other_1)
+      allow(type_class).to receive(:new).
+        with(:other_2_xml, session: session, fetch: fetch, associations: associations).
+        and_return(:other_2)
+      allow(parsed_xml).to receive(:xpath).with("an/xpath").
+        and_return([:other_1_xml, :other_2_xml]).once
+    end
+
+    it "returns instances for each workspace element in XML" do
+      expect(subject.many("an/xpath", type: type_class)).to eq([:other_1, :other_2])
+    end
+
+    it "is memoized" do
+      subject.many("an/xpath", type: type_class)
+      expect(subject.many("an/xpath", type: type_class)).to eq([:other_1, :other_2])
+    end
+
+    context "with associations" do
+      let(:associations) { :the_associations }
+
+      it "passes associations to instantiation" do
+        expect(subject.many("an/xpath", type: type_class, associations: :the_associations)).
+          to eq([:other_1, :other_2])
+      end
+    end
+
+    context "server reload requested" do
+      let(:fetch) { true }
+
+      it "fetches from server" do
+        expect(subject.many("an/xpath", type: type_class, fetch: true)).to eq([:other_1, :other_2])
+      end
+    end
+  end
+
+  describe "#one" do
+    it "returns first element from #many" do
+      allow(subject).to receive(:many).
+        with("an/xpath", type: :other_type, fetch: false, associations: {}).
+        and_return([:other_1, :other_2])
+      expect(subject.one("an/xpath", type: :other_type)).to eq(:other_1)
+    end
+
+    it "fetches from server if requested" do
+      allow(subject).to receive(:many).
+        with("an/xpath", type: :other_type, fetch: true, associations: {}).
+        and_return([:other_1, :other_2])
+      expect(subject.one("an/xpath", type: :other_type, fetch: true)).to eq(:other_1)
+    end
+
+    it "passes associations to #many" do
+      allow(subject).to receive(:many).
+        with("an/xpath", type: :other_type, fetch: true, associations: :the_associations).
+        and_return([:other_1, :other_2])
+      expect(subject.one("an/xpath", type: :other_type, fetch: true, associations: :the_associations)).
+        to eq(:other_1)
     end
   end
 
@@ -99,7 +197,7 @@ describe Huddle::RemoteResource do
         with(:the_path, session: session).
         and_return(:fetched_xml)
       allow(klass).to receive(:new).
-        with(:fetched_xml, session: session).
+        with(:fetched_xml, session: session, associations: {}).
         and_return(:new_instance)
       expect(klass.find_by_path(:the_path, session: session)).to eq(:new_instance)
     end
@@ -110,9 +208,20 @@ describe Huddle::RemoteResource do
         with(:the_path, session: :a_session).
         and_return(:fetched_xml)
       allow(klass).to receive(:new).
-        with(:fetched_xml, session: :a_session).
+        with(:fetched_xml, session: :a_session, associations: {}).
         and_return(:new_instance)
       expect(klass.find_by_path(:the_path)).to eq(:new_instance)
+    end
+
+    it "passes preload associations" do
+      allow(Huddle).to receive(:default_session).and_return(:a_session)
+      allow(klass).to receive(:fetch_xml).
+        with(:the_path, session: :a_session).
+        and_return(:fetched_xml)
+      allow(klass).to receive(:new).
+        with(:fetched_xml, session: :a_session, associations: :foobar).
+        and_return(:new_instance)
+      expect(klass.find_by_path(:the_path, associations: :foobar)).to eq(:new_instance)
     end
   end
 
