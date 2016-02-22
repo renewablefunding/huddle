@@ -24,6 +24,13 @@ describe Huddle::RemoteResource do
       expect(reloaded.parsed_xml).to eq(:the_new_xml)
     end
   end
+
+  describe "#to_xml" do
+    it "returns xml string" do
+      allow(parsed_xml).to receive(:to_xml).
+        and_return("an XML string")
+      expect(subject.to_xml).to eq("an XML string")
+    end
   end
 
   describe "#inspect" do

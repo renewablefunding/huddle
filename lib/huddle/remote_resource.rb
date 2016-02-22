@@ -18,6 +18,10 @@ module Huddle
       reload! if fetch
     end
 
+    def to_xml
+      parsed_xml.to_xml
+    end
+
     def inspect
       "#<#{self.class}:#{"0x00%x" % (object_id << 1)} id=#{id || "nil"}>"
     end
