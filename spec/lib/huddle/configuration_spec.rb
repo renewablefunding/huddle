@@ -1,7 +1,9 @@
 describe Huddle::Configuration do
-  shared_examples "a configuration setting" do |setting|
-    it "raises an exception if not set" do
-      expect { subject.send(setting) }.to raise_error(described_class::MissingSettingError)
+  shared_examples "a configuration setting" do |setting, required: true|
+    if required
+      it "raises an exception if not set" do
+        expect { subject.send(setting) }.to raise_error(described_class::MissingSettingError)
+      end
     end
 
     it "returns previously set #{setting}" do
@@ -18,8 +20,8 @@ describe Huddle::Configuration do
     include_examples "a configuration setting", :redirect_uri
   end
 
-  describe "#authorization_code" do
-    include_examples "a configuration setting", :authorization_code
+  describe "#default_authorization_code" do
+    include_examples "a configuration setting", :default_authorization_code, required: false
   end
 
   describe ".new" do
@@ -27,29 +29,34 @@ describe Huddle::Configuration do
       config = described_class.new(
         client_id: "123",
         redirect_uri: "example.com",
-        authorization_code: "456"
+        default_authorization_code: "456"
       )
       expect(config.client_id).to eq("123")
       expect(config.redirect_uri).to eq("example.com")
-      expect(config.authorization_code).to eq("456")
+      expect(config.default_authorization_code).to eq("456")
     end
   end
 
   describe "#validate!" do
-    it "raises error if any settings missing" do
+    it "raises error if all required settings missing" do
       expect { subject.validate! }.to raise_error(
         described_class::MissingSettingError,
-        "undefined settings: client_id, redirect_uri, authorization_code"
+        "undefined settings: client_id, redirect_uri"
       )
     end
 
-    it "does not raise error if all settings are set" do
-      config = described_class.new(
-        client_id: "123",
-        redirect_uri: "example.com",
-        authorization_code: "456"
+    it "raises error if any required settings missing" do
+      subject.redirect_uri = "example.com"
+      expect { subject.validate! }.to raise_error(
+        described_class::MissingSettingError,
+        "undefined settings: client_id"
       )
-      expect { config.validate! }.not_to raise_error
+    end
+
+    it "does not raise error if all required settings are set" do
+      subject.client_id = "123"
+      subject.redirect_uri = "example.com"
+      expect { subject.validate! }.not_to raise_error
     end
   end
 end

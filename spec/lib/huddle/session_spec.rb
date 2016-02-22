@@ -1,77 +1,113 @@
 describe Huddle::Session do
   let(:configuration) { Huddle.configuration }
+  let(:authorization_code) { configuration.default_authorization_code }
   subject {
     described_class.new(access_token: "5b", expires_in: 109, refresh_token: "p8", configuration: configuration)
   }
 
-  describe ".generate" do
+  describe ".prune_keys" do
+    it "ignores any keys not used for session initialization" do
+      desired_keys = {
+        access_token: "5b",
+        expires_in: 109,
+        refresh_token: "p8"
+      }
+      expect(described_class.prune_keys(desired_keys.merge(foo: "bar"))).
+        to eq(desired_keys)
+    end
+  end
+
+  describe ".call_login_server" do
     before(:each) do
+      allow(described_class).to receive(:prune_keys).
+        with(body).
+        and_return(body)
       allow(Net::HTTP).to receive(:post_form).
         with(Huddle::Session::ENDPOINT, {
+          foo: "bar",
+          baz: "buzz"
+        }).and_return(double(body: body.to_json, code: code))
+    end
+
+    context "when response is 200" do
+      let(:body) { { :access_token => "a_token" } }
+      let(:code) { "200" }
+
+      it "calls login endpoint with given params and returns parsed response" do
+        expect(described_class.call_login_server(foo: "bar", baz: "buzz")).
+          to eq(access_token: "a_token")
+      end
+    end
+
+    context "when response is not 200 and error description is returned" do
+      let(:body) { { :error_description => "That didn't work" } }
+      let(:code) { "403" }
+
+      it "raises a LoginError with the error description from the server" do
+        expect {
+          described_class.call_login_server(foo: "bar", baz: "buzz")
+        }.to raise_error(described_class::LoginError, "That didn't work")
+      end
+    end
+
+    context "when response is not 200 and error description is returned" do
+      let(:body) { { :invalid => "response" } }
+      let(:code) { "403" }
+
+      it "raises a LoginError with the error description from the server" do
+        expect {
+          described_class.call_login_server(foo: "bar", baz: "buzz")
+        }.to raise_error(described_class::LoginError, "Unknown Error")
+      end
+    end
+  end
+
+  describe ".generate" do
+    before(:each) do
+      allow(described_class).to receive(:call_login_server).
+        with({
           grant_type: "authorization_code",
           client_id: configuration.client_id,
           redirect_uri: configuration.redirect_uri,
-          code: configuration.authorization_code
-        }).and_return(double(:body => :a_response_body))
-      allow(described_class).to receive(:from_json_response).
-        with(:a_response_body, configuration: configuration).
-        and_return(:the_parsed_response)
+          code: authorization_code
+        }).and_return(foo: "bar")
+      allow(described_class).to receive(:new).
+        with(foo: "bar", configuration: configuration).
+        and_return(:the_session)
     end
 
     context "with specified configuration" do
       let(:configuration) {
-        Huddle::Configuration.new(client_id: "33", redirect_uri: "foo.bar", authorization_code: "99")
+        Huddle::Configuration.new(client_id: "33", redirect_uri: "foo.bar", default_authorization_code: "99")
       }
 
       it "generates access token from Huddle API using specified configuration" do
-        expect(described_class.generate(configuration: configuration)).to eq(:the_parsed_response)
+        expect(described_class.generate(configuration: configuration)).to eq(:the_session)
       end
     end
 
     context "without specified configuration" do
       it "generates access token from Huddle API using default configuration" do
-        expect(described_class.generate).to eq(:the_parsed_response)
+        expect(described_class.generate).to eq(:the_session)
+      end
+    end
+
+    context "with specified authorization code" do
+      let(:authorization_code) { "overridden_code" }
+
+      it "uses specified code in place of default code" do
+        expect(described_class.generate(authorization_code: authorization_code)).
+          to eq(:the_session)
       end
     end
 
     it "validates configuration first" do
-      expect(Net::HTTP).to receive(:post_form).never
+      expect(described_class).to receive(:call_login_server).never
       allow(configuration).to receive(:validate!).
         and_raise(Huddle::Configuration::MissingSettingError)
       expect {
         described_class.generate(configuration: Huddle::Configuration.new)
       }.to raise_error(Huddle::Configuration::MissingSettingError)
-    end
-  end
-
-  describe ".parse_json_response" do
-    it "returns hash of specific attributes from given JSON" do
-      response = {
-        "access_token" => "5b",
-        "expires_in" => 3,
-        "refresh_token" => "p8",
-        "foo" => "bar"
-      }.to_json
-
-      expect(described_class.parse_json_response(response)).to eq({
-        access_token: "5b",
-        expires_in: 3,
-        refresh_token: "p8"
-      })
-    end
-  end
-
-  describe ".from_json_response" do
-    it "instantiates object using given JSON" do
-      allow(described_class).to receive(:parse_json_response).
-        with(:a_response).
-        and_return({ foo: :bar })
-      allow(described_class).to receive(:new).
-        with({ foo: :bar, configuration: :a_config }).
-        and_return(:new_instance)
-      expect(
-        described_class.from_json_response(:a_response, configuration: :a_config)
-      ).to eq(:new_instance)
     end
   end
 
@@ -134,15 +170,12 @@ describe Huddle::Session do
     it "calls refresh endpoint and renews token" do
       frozen_time = Time.now
       allow(Time).to receive(:now).and_return(frozen_time)
-      allow(Net::HTTP).to receive(:post_form).
-        with(Huddle::Session::ENDPOINT, {
+      allow(described_class).to receive(:call_login_server).
+        with({
           grant_type: "refresh_token",
           client_id: configuration.client_id,
           refresh_token: "p8"
-        }).and_return(double(:body => :a_response_body))
-      allow(described_class).to receive(:parse_json_response).
-        with(:a_response_body).
-        and_return({
+        }).and_return({
           access_token: "fancy-new-shinies",
           expires_in: 810,
           refresh_token: "so-much-later"

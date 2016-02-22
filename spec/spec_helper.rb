@@ -23,7 +23,7 @@ RSpec.configure do |config|
     Huddle.configure do |c|
       c.client_id = "1234"
       c.redirect_uri = "zoo.net"
-      c.authorization_code = "5678"
+      c.default_authorization_code = "5678"
     end
   end
 end

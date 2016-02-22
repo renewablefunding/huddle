@@ -3,34 +3,36 @@ require "json"
 
 module Huddle
   class Session
+    class LoginError < StandardError; end
+
     ENDPOINT = URI("https://login.huddle.net/token")
 
     class << self
-      def generate(configuration: Huddle.configuration)
-        configuration.validate!
-        response = Net::HTTP.post_form(
-          ENDPOINT,
-          grant_type: "authorization_code",
-          client_id: configuration.client_id,
-          redirect_uri: configuration.redirect_uri,
-          code: configuration.authorization_code
-        )
-        from_json_response(response.body, configuration: configuration)
-      end
-
-      def parse_json_response(response)
-        parsed = JSON.parse(response)
-        {
-          access_token: parsed["access_token"],
-          expires_in: parsed["expires_in"],
-          refresh_token: parsed["refresh_token"]
+      def prune_keys(full_response)
+        full_response.select { |key, value|
+          [:access_token, :expires_in, :refresh_token].include?(key)
         }
       end
 
-      def from_json_response(response, configuration:)
-        new(
-          parse_json_response(response).merge(configuration: configuration)
+      def call_login_server(**params)
+        response = Net::HTTP.post_form(ENDPOINT, **params)
+        parsed_response = JSON.parse(response.body, symbolize_names: true)
+        if response.code != "200"
+          raise LoginError, parsed_response.fetch(:error_description, "Unknown Error")
+        end
+        prune_keys(parsed_response)
+      end
+
+      def generate(configuration: Huddle.configuration, authorization_code: nil)
+        configuration.validate!
+        authorization_code ||= configuration.default_authorization_code
+        response = call_login_server(
+          grant_type: "authorization_code",
+          client_id: configuration.client_id,
+          redirect_uri: configuration.redirect_uri,
+          code: authorization_code
         )
+        new(response.merge(configuration: configuration))
       end
     end
 
@@ -53,13 +55,11 @@ module Huddle
     end
 
     def refresh!
-      response = Net::HTTP.post_form(
-        ENDPOINT,
+      response = self.class.call_login_server(
         grant_type: "refresh_token",
         client_id: @configuration.client_id,
         refresh_token: refresh_token
       )
-      response = self.class.parse_json_response(response.body)
       @access_token = response[:access_token]
       @expires_at = Time.now + response[:expires_in]
       @refresh_token = response[:refresh_token]
