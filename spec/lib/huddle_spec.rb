@@ -23,11 +23,11 @@ describe Huddle do
     end
   end
 
-  describe "#authenticate!" do
-    it "generates and stores an access token" do
+  describe "#default_session" do
+    it "generates and memoizes a session from default config" do
       allow(Huddle::Session).to receive(:generate).
-        and_return(:an_access_token)
-      described_class.authenticate!
+        and_return(:an_access_token).once
+      described_class.default_session
       expect(described_class.default_session).to eq(:an_access_token)
     end
   end
