@@ -191,6 +191,13 @@ workspace = document.workspace
 # => #<Huddle::Workspace:0x007fc649ade000 id=1>
 ```
 
+To actually fetch the binary content of the document:
+
+```ruby
+content = document.content
+# => "%PDF-1.3\n%\xC4\xE5\xF2\xE5\xEB\xA7\xF3..."
+```
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.

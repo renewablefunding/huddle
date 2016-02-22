@@ -293,17 +293,26 @@ describe Huddle::RemoteResource do
     end
   end
 
-  describe ".fetch_xml" do
-    before(:each) do
+  describe ".fetch" do
+    it "opens the given URI and returns the response body" do
       allow(klass).to receive(:expand_uri).with("/the/path").
         and_return("fully_qualified_uri")
       allow(OpenURI).to receive(:open_uri).with(
         "fully_qualified_uri",
         {
           "Authorization" => "OAuth2 a_token",
-          "Accept" => "application/vnd.huddle.data+xml"
-        }
-      ).and_return(double(:read => :the_xml))
+          "Accept" => :the_mime_type
+        }).and_return(double(:read => :the_body))
+      expect(klass.fetch("/the/path", mime_type: :the_mime_type, session: session)).
+        to eq(:the_body)
+    end
+  end
+
+  describe ".fetch_xml" do
+    before(:each) do
+      allow(klass).to receive(:fetch).
+        with("/the/path", mime_type: "application/vnd.huddle.data+xml", session: session).
+        and_return(:the_xml)
     end
 
     it "returns parsed xml from Huddle endpoint" do

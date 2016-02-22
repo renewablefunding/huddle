@@ -46,4 +46,16 @@ describe Huddle::Document do
       expect(subject.workspace).to eq(:workspace)
     end
   end
+
+  describe "#content" do
+    it "fetches content link using stored mime type" do
+      allow(described_class).to receive(:fetch).
+        with(
+          "https://api.huddle.net/files/documents/123/content",
+          mime_type: "application/pdf",
+          session: :a_session
+        ).and_return(:the_document_content)
+      expect(subject.content).to eq(:the_document_content)
+    end
+  end
 end

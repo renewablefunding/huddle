@@ -28,5 +28,14 @@ module Huddle
     def workspace
       one("workspace", type: Huddle::Workspace, fetch: true)
     end
+
+    def content
+      content_link = links["content"]
+      self.class.fetch(
+        content_link["href"],
+        mime_type: content_link["type"],
+        session: session
+      )
+    end
   end
 end

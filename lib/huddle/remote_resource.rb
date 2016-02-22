@@ -116,15 +116,23 @@ module Huddle
         }.to_s
       end
 
-      def fetch_xml(path, at_xpath: "/#{root_element}", session:)
+      def fetch_xml(uri_or_path, at_xpath: "/#{root_element}", session:)
+        xml = fetch(uri_or_path,
+          mime_type: "application/vnd.huddle.data+xml",
+          session: session
+        )
+        parse_xml(xml, at_xpath: at_xpath)
+      end
+
+      def fetch(uri_or_path, mime_type:, session:)
         response = OpenURI.open_uri(
-          expand_uri(path),
+          expand_uri(uri_or_path),
           {
             "Authorization" => "OAuth2 #{session}",
-            "Accept" => "application/vnd.huddle.data+xml"
+            "Accept" => mime_type
           }
         )
-        parse_xml(response.read, at_xpath: at_xpath)
+        response.read
       end
     end
   end
