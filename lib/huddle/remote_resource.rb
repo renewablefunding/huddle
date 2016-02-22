@@ -3,6 +3,8 @@ require "oga"
 
 module Huddle
   module RemoteResource
+    class LinkNotFoundError < StandardError; end
+
     BASE_URI = URI("https://api.huddle.net")
 
     def self.included(klass)
@@ -29,7 +31,7 @@ module Huddle
     def id
       self_link = links["self"]
       return unless self_link
-      self_link.split("/").last.to_i
+      self_link["href"].split("/").last.to_i
     end
 
     def created_at
@@ -43,7 +45,7 @@ module Huddle
     end
 
     def reload!
-      @parsed_xml = self.class.fetch_xml(links["self"], session: session)
+      @parsed_xml = self.class.fetch_xml(links["self"]["href"], session: session)
       @associations = {}
       self
     end
@@ -59,15 +61,18 @@ module Huddle
     end
 
     def fetch_from_link(association_name, link:, type:, associations: {})
+      (raise LinkNotFoundError, link) unless links[link]
       @associations[association_name] ||= begin
-        type.find_by_path(links[link], session: session, associations: associations)
+        type.find_by_path(links[link]["href"], session: session, associations: associations)
       end
     end
 
     def links
       @links ||= begin
         parsed_xml.xpath("link").each_with_object({}) do |link, memo|
-          memo[link.get("rel")] = link.get("href")
+          memo[link.get("rel")] = link.attributes.each_with_object({}) do |attribute, memo|
+            memo[attribute.name] = attribute.value unless attribute.name == "rel"
+          end
         end
       end
     end

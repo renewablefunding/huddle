@@ -63,6 +63,12 @@ describe Huddle::RemoteResource do
         to eq(fetched_link)
     end
 
+    it "raises LinkNotFoundError if no link found by given name" do
+      expect {
+        subject.fetch_from_link("the_foo", link: "fozz", type: type_class)
+      }.to raise_error(klass::LinkNotFoundError, "fozz")
+    end
+
     context "with associations" do
       let(:associations) { :the_associations }
 
@@ -76,9 +82,9 @@ describe Huddle::RemoteResource do
   describe "#links" do
     it "returns hash of links from XML" do
       expect(subject.links).to eq({
-        "bar" => "http://example.com/bar/2",
-        "foo" => "http://example.com/foo/1",
-        "self" => "http://example.com/resource/123"
+        "bar" => { "href" => "http://example.com/bar/2", "type" => "baz" },
+        "foo" => { "href" => "http://example.com/foo/1" },
+        "self" => { "href" => "http://example.com/resource/123" }
       })
     end
   end
