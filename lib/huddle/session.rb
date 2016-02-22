@@ -2,7 +2,7 @@ require "net/http"
 require "json"
 
 module Huddle
-  class AccessToken
+  class Session
     ENDPOINT = URI("https://login.huddle.net/token")
 
     class << self

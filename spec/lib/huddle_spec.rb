@@ -25,7 +25,7 @@ describe Huddle do
 
   describe "#authenticate!" do
     it "generates and stores an access token" do
-      allow(Huddle::AccessToken).to receive(:generate).
+      allow(Huddle::Session).to receive(:generate).
         and_return(:an_access_token)
       described_class.authenticate!
       expect(described_class.session_token).to eq(:an_access_token)

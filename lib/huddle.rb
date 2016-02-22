@@ -1,7 +1,7 @@
 require "huddle/version"
 require "huddle/configuration"
 require "huddle/remote_resource"
-require "huddle/access_token"
+require "huddle/session"
 require "huddle/user"
 require "huddle/workspace"
 require "huddle/folder"
@@ -19,7 +19,7 @@ module Huddle
     end
 
     def authenticate!
-      @session_token = Huddle::AccessToken.generate
+      @session_token = Huddle::Session.generate
     end
   end
 end

@@ -1,4 +1,4 @@
-describe Huddle::AccessToken do
+describe Huddle::Session do
   let(:configuration) { Huddle.configuration }
   subject {
     described_class.new(access_token: "5b", expires_in: 109, refresh_token: "p8", configuration: configuration)
@@ -7,7 +7,7 @@ describe Huddle::AccessToken do
   describe ".generate" do
     before(:each) do
       allow(Net::HTTP).to receive(:post_form).
-        with(Huddle::AccessToken::ENDPOINT, {
+        with(Huddle::Session::ENDPOINT, {
           grant_type: "authorization_code",
           client_id: configuration.client_id,
           redirect_uri: configuration.redirect_uri,
@@ -135,7 +135,7 @@ describe Huddle::AccessToken do
       frozen_time = Time.now
       allow(Time).to receive(:now).and_return(frozen_time)
       allow(Net::HTTP).to receive(:post_form).
-        with(Huddle::AccessToken::ENDPOINT, {
+        with(Huddle::Session::ENDPOINT, {
           grant_type: "refresh_token",
           client_id: configuration.client_id,
           refresh_token: "p8"
